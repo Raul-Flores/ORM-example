@@ -1,0 +1,50 @@
+services:
+    db:
+      container_name: postgresdb
+      image: postgres
+      restart: always
+      volumes:
+        - type: bind
+          source: ./pgdata
+          target: /var/lib/postgresql/data
+        - type: bind
+          source: ./backups
+          target: /backups
+      ports: 
+        - 5432:5432
+      environment:
+        - LC_ALL=C.UTF-8
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_DB=prueba
+      networks: 
+        net1:         
+          ipv4_address: 10.0.255.3
+  
+    adminer:
+      container_name: pgadmin4
+      image: dpage/pgadmin4
+      ports: 
+        - 8080:80
+      environment:
+        - LC_ALL=C.UTF-8
+        - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      volumes:
+        - type: bind
+          source: ./pgadmin
+          target: /var/lib/pgadmin/
+      networks: 
+        net1:         
+          ipv4_address: 10.0.255.2
+  
+ #volumes:
+ #pgdata:
+ #pgadmin:
+ #backups:
+networks:
+  net1:
+     driver: bridge
+     ipam:
+         config:
+             - subnet: 10.0.255.0/29
