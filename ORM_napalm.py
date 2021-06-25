@@ -1,4 +1,5 @@
 from peewee import *
+from peewee_migrate import Router
 import psycopg2
 import pymysql
 import sqlite3
@@ -6,8 +7,10 @@ import datetime
 from napalm import get_network_driver
 secretvar= "Secret"
 db = ""
+databasemigration = None
 class BaseModel(Model):
     class Meta:
+        global databasemigration
         while True:
             try:
                 db = input("BD Options: [mariadb|postgres|sqlite] :")
@@ -23,6 +26,11 @@ class BaseModel(Model):
             except:
                 print ("Los valores introducidos no son correctos") 
         database = db
+        databasemigration = database
+
+router = Router(databasemigration)
+
+        
 class Interface(BaseModel):
     device_ip = CharField(max_length=40)
     intf_name = CharField(max_length=40)
@@ -32,6 +40,7 @@ class Interface(BaseModel):
     mtu = IntegerField()
     speed = IntegerField()
     status_date = DateTimeField()
+    validador = BooleanField()
     #class Meta:
     #    db_table = 'interface'
 
@@ -42,8 +51,10 @@ inventory = [
 {'hostname': 'ios-xe-mgmt.cisco.com','username': 'developer','password': 'C1sco12345', 'optional_args' : {'port': 8181}}
 ]
 if __name__ == '__main__':
-    if not Interface.table_exists():
-        Interface.create_table()
+    router.create('migration_name')
+    router.run('migration_name')
+    #if not Interface.table_exists():
+    #    Interface.create_table()
     for device in inventory:
         try:
             connection = driver(**device)
